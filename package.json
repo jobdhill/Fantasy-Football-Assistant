@@ -1,0 +1,21 @@
+{
+  "name": "draft-overlay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Transparent desktop overlay for live fantasy football drafts — multi-provider rankings, pick tracking, and recommendations.",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @draft-overlay/desktop",
+    "build": "npm run build -w @draft-overlay/shared && npm run build -w @draft-overlay/desktop && npm run build -w @draft-overlay/extension",
+    "test": "npm run test --workspaces --if-present",
+    "replay": "node scripts/replay-draft.mjs",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

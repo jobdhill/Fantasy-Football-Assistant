@@ -1,0 +1,16 @@
+{
+  "name": "@draft-overlay/extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Companion browser extension: streams draft-room picks to the Draft Overlay desktop app",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit",
+    "zip": "cd dist && zip -r ../draft-overlay-extension.zip ."
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.280",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.0"
+  }
+}

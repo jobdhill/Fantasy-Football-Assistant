@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Draft Overlay Companion",
+  "version": "0.1.0",
+  "description": "Streams live fantasy draft picks from your draft room to the Draft Overlay desktop app over localhost. Unofficial; not affiliated with ESPN, Yahoo, or Sleeper.",
+  "permissions": ["storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Draft Overlay Companion"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://fantasy.espn.com/football/draft*", "https://fantasy.espn.com/*/draft*"],
+      "js": ["content-espn.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://football.fantasysports.yahoo.com/draftclient*",
+        "https://football.fantasysports.yahoo.com/*/draft*"
+      ],
+      "js": ["content-yahoo.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

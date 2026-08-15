@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+out/
+release/
+*.tsbuildinfo
+
+# Provider data — never commit fetched or imported rankings/player data
+*.csv
+data/
+.cache/
+players-cache*.json
+
+# electron-store / app config (contains user data)
+config.json
+draft-sessions/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Env / secrets
+.env
+.env.*
+
+# Logs
+*.log
+npm-debug.log*

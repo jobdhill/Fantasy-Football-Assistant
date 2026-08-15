@@ -1,0 +1,56 @@
+{
+  "name": "@draft-overlay/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Transparent draft-day overlay for fantasy football",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "start": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "package": "electron-vite build && electron-builder --mac dmg"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0",
+    "papaparse": "^5.4.1",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@dnd-kit/core": "^6.1.0",
+    "@dnd-kit/sortable": "^8.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@types/node": "^20.14.0",
+    "@types/papaparse": "^5.3.14",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/ws": "^8.5.10",
+    "@vitejs/plugin-react": "^4.3.1",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^3.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0",
+    "zustand": "^5.0.0"
+  },
+  "build": {
+    "appId": "com.draft-overlay.app",
+    "productName": "Draft Overlay",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**",
+      "resources/**"
+    ],
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.sports",
+      "identity": null
+    }
+  }
+}

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-size: 13px;
+        width: 260px;
+        padding: 14px;
+        background: #14161c;
+        color: #e8eaf0;
+      }
+      h1 { font-size: 14px; margin: 0 0 10px; }
+      label { display: block; margin-bottom: 4px; color: #8b91a0; }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 6px 8px;
+        border: 1px solid #2c313d;
+        border-radius: 6px;
+        background: #1c1f27;
+        color: inherit;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+      }
+      button {
+        margin-top: 8px;
+        width: 100%;
+        padding: 7px;
+        border: none;
+        border-radius: 6px;
+        background: #4f8ef7;
+        color: #fff;
+        cursor: pointer;
+      }
+      #status { margin-top: 10px; }
+      .connected { color: #4fc06d; }
+      .disconnected { color: #e0a75d; }
+      .bad-token { color: #e05d5d; }
+    </style>
+  </head>
+  <body>
+    <h1>Draft Overlay Companion</h1>
+    <label for="token">Pairing token (shown in the desktop app)</label>
+    <input id="token" maxlength="16" autocomplete="off" />
+    <button id="save">Save &amp; connect</button>
+    <div id="status">Checking…</div>
+    <script src="popup.js"></script>
+  </body>
+</html>
