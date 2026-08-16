@@ -47,7 +47,7 @@ export function registerIpc(): void {
     broadcast({ type: 'settings', settings });
   });
 
-  ipcMain.handle('sources:refresh', (_e, id?: string) => refreshSources(id));
+  ipcMain.handle('sources:refresh', (_e, id?: string, force?: boolean) => refreshSources(id, force));
   ipcMain.handle('sources:remove', (_e, id: string) => removeSource(id));
 
   ipcMain.handle('csv:import', async () => {

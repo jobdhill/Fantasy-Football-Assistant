@@ -51,7 +51,7 @@ export interface Api {
   getState(): Promise<StateSnapshot>;
   getPlayers(force?: boolean): Promise<Player[]>;
   saveSettings(settings: LeagueSettings): Promise<void>;
-  refreshSource(id?: string): Promise<RankingSource[]>;
+  refreshSource(id?: string, force?: boolean): Promise<RankingSource[]>;
   removeSource(id: string): Promise<void>;
   importCsv(): Promise<{ label: string; matched: number; total: number } | null>;
   saveCustom(custom: CustomRanking): Promise<void>;

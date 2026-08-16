@@ -1,10 +1,19 @@
-import { normalizeName, pickGoneProbability, POSITIONS, type Position } from '@draft-overlay/shared';
+import {
+  nextPickForSlot,
+  normalizeName,
+  POSITIONS,
+  roundOfPick,
+  totalRounds,
+  type Position,
+} from '@draft-overlay/shared';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import Recommendations from '../components/Recommendations';
 import RosterPanel from '../components/RosterPanel';
+import TeamBalance from '../components/TeamBalance';
 import {
   buildBoard,
   draftContext,
+  goneOddsForBoard,
   headshotUrl,
   POSITION_COLORS,
   sourceShortLabel,
@@ -15,6 +24,7 @@ import {
 import { useApp, usePlayersById } from '../store';
 
 type Sheet = 'rankings' | 'custom' | 'team';
+type TeamTab = 'balance' | 'roster';
 type PosFilter = 'ALL' | Position;
 
 const FAVS_KEY = 'draft-overlay-favorites';
@@ -31,6 +41,7 @@ export default function Overlay() {
   const { players, sources, custom, session, settings, bridge, clickThrough } = useApp();
   const byId = usePlayersById();
   const [sheet, setSheet] = useState<Sheet>('rankings');
+  const [teamTab, setTeamTab] = useState<TeamTab>('balance');
   const [pos, setPos] = useState<PosFilter>('ALL');
   const [search, setSearch] = useState('');
   const [alpha, setAlpha] = useState(0.95);
@@ -76,6 +87,29 @@ export default function Overlay() {
     [rows, sheet],
   );
 
+  /**
+   * Where my upcoming picks project onto the board: drafted players are
+   * already filtered out, so if the room keeps drafting down this list, the
+   * player at visible index i goes at overall pick currentOverall + i — my
+   * pick at overall P lands just before index P − currentOverall. Only
+   * meaningful on the unfiltered list.
+   */
+  const pickMarkers = useMemo(() => {
+    const markers = new Map<number, number>();
+    if (!session || ctx.complete || pos !== 'ALL' || search) return markers;
+    const totalPicks = activeSettings.teams * totalRounds(activeSettings.roster);
+    let from = ctx.currentOverall;
+    while (from <= totalPicks) {
+      const mine = nextPickForSlot(from, activeSettings.mySlot, activeSettings.teams);
+      if (mine > totalPicks) break;
+      const idx = mine - ctx.currentOverall;
+      if (idx > 175) break;
+      markers.set(idx, mine);
+      from = mine + 1;
+    }
+    return markers;
+  }, [session, ctx.complete, ctx.currentOverall, pos, search, activeSettings]);
+
   const toggleFav = (id: string) => {
     const next = new Set(favs);
     next.has(id) ? next.delete(id) : next.add(id);
@@ -89,12 +123,18 @@ export default function Overlay() {
     void window.api.setCollapsed(next);
   };
 
+  const goneMap = useMemo(
+    () => (session ? goneOddsForBoard(rows, ctx) : new Map<string, number>()),
+    [rows, session, ctx.currentOverall, ctx.goneWindow, ctx.complete],
+  );
+
   const gonePct = (row: BoardRow): number | null => {
     if (!session || ctx.complete || ctx.goneWindow <= 0) return null;
     const anchor =
       row.platformAdp ?? row.adp ?? (Number.isFinite(row.consensusRank) ? row.consensusRank : null);
     if (anchor == null) return null;
-    const p = pickGoneProbability(anchor, ctx.currentOverall, ctx.goneWindow);
+    const p = goneMap.get(row.player.id);
+    if (p == null) return null;
     return p >= 0.2 ? Math.min(99, Math.round(p * 100)) : null;
   };
 
@@ -117,15 +157,22 @@ export default function Overlay() {
                 : `Pick ${ctx.currentOverall} · ${ctx.picksUntilMyTurn} to you`
             : ''}
         </span>
-        <button className="icon-btn" title="Refresh sources" onClick={() => void window.api.refreshSource()}>⟳</button>
+        <button
+          className="icon-btn"
+          title="Refresh sources (pulls live ADP)"
+          onClick={() => void window.api.refreshSource(undefined, true)}
+        >
+          ⟳
+        </button>
         <input
           className="opacity-slider"
           type="range"
-          min={0.35}
+          min={0}
           max={1}
           step={0.01}
           value={alpha}
           title="Opacity"
+          style={{ ['--fill' as string]: `${alpha * 100}%` }}
           onChange={(e) => setAlpha(Number(e.target.value))}
         />
         <button className="icon-btn" title={collapsed ? 'Expand' : 'Collapse to bar'} onClick={toggleCollapsed}>
@@ -156,7 +203,23 @@ export default function Overlay() {
           </div>
 
           {sheet === 'team' ? (
-            <RosterPanel />
+            <>
+              <nav className="pos-pills">
+                <button
+                  className={teamTab === 'balance' ? 'active' : ''}
+                  onClick={() => setTeamTab('balance')}
+                >
+                  Balance
+                </button>
+                <button
+                  className={teamTab === 'roster' ? 'active' : ''}
+                  onClick={() => setTeamTab('roster')}
+                >
+                  Roster
+                </button>
+              </nav>
+              {teamTab === 'balance' ? <TeamBalance rows={rows} /> : <RosterPanel />}
+            </>
           ) : (
             <>
               <input
@@ -215,8 +278,18 @@ export default function Overlay() {
                     showTierBreaks && row.tier != null && (!prev || prev.tier !== row.tier);
                   const pct = gonePct(row);
                   const displayRank = sheet === 'custom' ? row.customRank! : Math.round(row.consensusRank);
+                  const myPick = pickMarkers.get(i);
                   return (
                     <Fragment key={row.player.id}>
+                      {myPick != null && (
+                        <li className="pick-sep" aria-hidden>
+                          <span className="pick-sep-line" />
+                          <span className="pick-sep-label">
+                            Your pick · Rd {roundOfPick(myPick, activeSettings.teams)} · #{myPick}
+                          </span>
+                          <span className="pick-sep-line" />
+                        </li>
+                      )}
                       {breakHere && (
                         <li className="tier-sep" aria-hidden>
                           <span className="tier-badge small">{tierLetter(row.tier!)}</span>

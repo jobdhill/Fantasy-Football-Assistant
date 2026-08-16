@@ -5,10 +5,11 @@ A transparent, always-on-top desktop overlay for live fantasy football drafts. F
 ## Features
 
 - **Transparent overlay window** — frameless, always-on-top, adjustable opacity, click-through mode (global hotkey), collapses to a slim bar.
-- **Multi-provider rankings** — side-by-side rank columns fetched at runtime (ESPN, 4for4 consensus ADP, Yahoo ADP) plus CSV import for anything else (FantasyPros, your own sheets).
+- **Multi-provider rankings** — side-by-side rank columns fetched at runtime (ESPN live ADP, Sleeper live ADP matched to your scoring format, Yahoo live ADP from their public draft-analysis API, 4for4 consensus) plus CSV import for anything else (FantasyPros, your own sheets). The ⟳ refresh always bypasses caches, so one click pulls current ADP.
 - **Custom rankings editor** — drag-and-drop reordering, tier breaks, clone from any provider list, CSV import/export.
 - **Live pick tracking** — companion browser extension watches your ESPN/Yahoo draft room and streams picks to the overlay; manual pick-marking always works as fallback and correction.
-- **Recommendation engine** — top-3 suggestions with a transparent score breakdown: ADP value, tier scarcity, roster need, and positional-run detection.
+- **Recommendation engine** — top-3 suggestions with a transparent score breakdown: ADP value, tier scarcity, roster need, and positional-run detection. Positional urgency is gated by availability: players who will still be on the board at your next turn (computed from the actual remaining pool, not raw ADP) don't get reached for.
+- **Team balance** — a Team-tab view of the draft capital your roster holds at each position versus a balanced team's investment by that round, with NEED/SET/OVER flags (two late-round RBs read as a need even with the slots technically filled).
 - **Snake redraft support** — PPR / half-PPR / standard, any team count, your slot, "picks until my turn."
 
 ## Setup

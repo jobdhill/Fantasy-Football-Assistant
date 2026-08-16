@@ -5,6 +5,8 @@ import Papa from 'papaparse';
 import { fetchEspnEntries } from './espn';
 import { getFourFourTable, type FourFourRow } from './fourfour';
 import { getMatcher } from './playerdb';
+import { fetchSleeperAdpEntries } from './sleeperadp';
+import { fetchYahooAdpEntries } from './yahoo';
 import { store } from './storage';
 import { broadcast } from './windows';
 
@@ -53,7 +55,11 @@ function adpEntries(rows: FourFourRow[], pick: (r: FourFourRow) => number | unde
   return entries;
 }
 
-/** Consensus ADP + Yahoo ADP columns, both from the one 4for4 fetch. */
+/**
+ * 4for4's consensus column. Note their table publishes whole-number ordinals,
+ * so this is a rank consensus, not fractional draft cost — the live per-site
+ * adapters (ESPN, Sleeper, Yahoo) carry the real ADPs.
+ */
 async function refreshFourFour(force: boolean): Promise<void> {
   try {
     const rows = await getFourFourTable(force);
@@ -64,15 +70,27 @@ async function refreshFourFour(force: boolean): Promise<void> {
       updatedAt: Date.now(),
       entries: adpEntries(rows, (r) => r.overall),
     });
-    upsert({
-      id: 'yahoo-adp',
-      label: 'Yahoo ADP',
-      kind: 'yahoo',
-      updatedAt: Date.now(),
-      entries: adpEntries(rows, (r) => r.yahoo),
-    });
   } catch (err) {
     failSource('4for4', '4for4 ADP', '4for4', err);
+  }
+}
+
+/** Sleeper's live ADP, matched to the league's scoring format. */
+async function refreshSleeperAdp(force: boolean): Promise<void> {
+  try {
+    const entries = await fetchSleeperAdpEntries(store.get('settings').scoring, force);
+    upsert({ id: 'sleeper-adp', label: 'Sleeper ADP', kind: 'sleeper', updatedAt: Date.now(), entries });
+  } catch (err) {
+    failSource('sleeper-adp', 'Sleeper ADP', 'sleeper', err);
+  }
+}
+
+/** Yahoo's live ADP, straight from their public draft-analysis API. */
+async function refreshYahoo(force: boolean): Promise<void> {
+  try {
+    const entries = await fetchYahooAdpEntries(force);
+    upsert({ id: 'yahoo-adp', label: 'Yahoo ADP', kind: 'yahoo', updatedAt: Date.now(), entries });
+  } catch (err) {
     failSource('yahoo-adp', 'Yahoo ADP', 'yahoo', err);
   }
 }
@@ -80,11 +98,15 @@ async function refreshFourFour(force: boolean): Promise<void> {
 /**
  * Refreshes one source (or all API-backed sources). Every adapter degrades
  * independently — a broken endpoint disables a column, never the app.
+ * `force` bypasses adapter caches; refreshing a single source by id always
+ * forces, and the overlay's manual refresh forces everything so a user click
+ * is guaranteed to pull live ADP.
  */
-export async function refreshSources(id?: string): Promise<RankingSource[]> {
-  const target = id === 'yahoo-adp' ? '4for4' : id;
-  if (!target || target === '4for4') await refreshFourFour(Boolean(id));
-  if (!target || target === 'espn') await refreshEspn();
+export async function refreshSources(id?: string, force = false): Promise<RankingSource[]> {
+  if (!id || id === '4for4') await refreshFourFour(force || id === '4for4');
+  if (!id || id === 'espn') await refreshEspn();
+  if (!id || id === 'sleeper-adp') await refreshSleeperAdp(force || id === 'sleeper-adp');
+  if (!id || id === 'yahoo-adp') await refreshYahoo(force || id === 'yahoo-adp');
   return getSources();
 }
 

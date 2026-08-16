@@ -275,7 +275,35 @@ code {
   background: var(--card-2);
   border-radius: 7px;
 }
-.opacity-slider { width: 56px; }
+.opacity-slider {
+  width: 56px;
+  height: 14px;
+  margin: 0;
+  padding: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+.opacity-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to right,
+    var(--gold) var(--fill, 95%),
+    var(--card-2) var(--fill, 95%)
+  );
+}
+.opacity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: var(--gold);
+  cursor: pointer;
+}
 
 .clickthrough-banner {
   background: var(--gold);
@@ -505,6 +533,27 @@ code {
   gap: 8px;
   padding: 7px 12px 3px;
 }
+
+/* projected "your pick lands here" marker */
+.pick-sep {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 4px;
+}
+.pick-sep-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--gold);
+  white-space: nowrap;
+}
+.pick-sep-line {
+  flex: 1;
+  border-top: 2px solid var(--gold);
+  opacity: 0.55;
+}
 .tier-sep-line {
   flex: 1;
   border-top: 2px dashed var(--gold-dim);
@@ -592,6 +641,91 @@ code {
   border-top: 1px solid var(--border);
   background: rgba(23, 24, 29, var(--panel-alpha));
 }
+
+/* team balance */
+.balance-panel { padding: 10px 14px; overflow-y: auto; flex: 1; }
+.balance-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.balance-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.balance-row { padding: 8px 0; border-bottom: 1px solid var(--border); }
+.balance-line { display: flex; align-items: center; gap: 8px; }
+.balance-pos { width: 34px; font-weight: 800; flex-shrink: 0; }
+.balance-bar {
+  position: relative;
+  flex: 1;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--card-2);
+  overflow: hidden;
+}
+.balance-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 5px;
+  opacity: 0.85;
+}
+/* the slice of the fill past the target marker */
+.balance-over {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  height: 100%;
+  background: var(--red);
+}
+.balance-marker {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--text);
+  opacity: 0.8;
+}
+.balance-pct {
+  width: 44px;
+  text-align: right;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.balance-status {
+  width: 38px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+.s-set { color: var(--green); }
+.s-need { color: var(--amber); }
+.s-over { color: var(--red); }
+.balance-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 6px 0 0 42px;
+}
+.balance-player {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  max-width: 45%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.headshot.tiny { width: 18px; height: 18px; }
+.balance-note { margin-top: 8px; }
 
 .roster-panel { padding: 10px 14px; overflow-y: auto; flex: 1; }
 .roster-row {

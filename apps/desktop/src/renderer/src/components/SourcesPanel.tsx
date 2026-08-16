@@ -9,7 +9,8 @@ export default function SourcesPanel() {
   const refresh = async (id?: string) => {
     setBusy(true);
     try {
-      await window.api.refreshSource(id);
+      // A manual refresh always bypasses adapter caches for live ADP.
+      await window.api.refreshSource(id, true);
     } finally {
       setBusy(false);
     }

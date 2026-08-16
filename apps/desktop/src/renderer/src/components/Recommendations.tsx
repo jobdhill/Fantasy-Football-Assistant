@@ -29,7 +29,8 @@ export default function Recommendations({
           `score ${rec.score}\n` +
           `board rank ${Math.round(rec.rank)} (base ${b.base.toFixed(2)})\n` +
           `ADP value ${b.value.toFixed(2)} · scarcity ${b.scarcity.toFixed(2)}\n` +
-          `roster need ${b.need.toFixed(2)} · position run ${b.run.toFixed(2)}`;
+          `roster need ${b.need.toFixed(2)} · position run ${b.run.toFixed(2)}\n` +
+          `${Math.round(rec.goneBeforeNextTurn * 100)}% gone before your next pick`;
         const [first, ...rest] = rec.player.name.split(' ');
         return (
           <div key={rec.player.id} className={`rec3 rec3-${i}`} title={tooltip}>

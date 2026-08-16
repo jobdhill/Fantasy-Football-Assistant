@@ -1,11 +1,14 @@
 import {
   autoTierStarts,
   customTiers,
+  goneOdds,
   hasUsableSpread,
   nextPickForSlot,
   picksUntilTurn,
   recommend,
+  roundOfPick,
   slotForPick,
+  teamBalance,
   totalRounds,
   type AvailablePlayer,
   type CustomRanking,
@@ -13,8 +16,10 @@ import {
   type LeagueSettings,
   type Player,
   type Position,
+  type PositionBalance,
   type RankingSource,
   type Recommendation,
+  type RosteredPlayerValue,
 } from '@draft-overlay/shared';
 
 export interface BoardRow {
@@ -200,7 +205,7 @@ export function topRecommendations(
   const available: AvailablePlayer[] = rows
     .filter((r) => !r.picked)
     .slice(0, 120)
-    .map((r) => ({ player: r.player, rank: r.boardRank, tier: r.tier, adp: r.adp }));
+    .map((r) => ({ player: r.player, rank: r.boardRank, tier: r.tier, adp: r.platformAdp ?? r.adp }));
 
   const counts: Partial<Record<Position, number>> = {};
   const recent: Position[] = [];
@@ -220,6 +225,68 @@ export function topRecommendations(
     picksUntilNext: ctx.goneWindow,
     recentPositions: recent,
   }).slice(0, count);
+}
+
+/** Market draft-cost anchor for a row: platform ADP, blended ADP, then rank. */
+function rowAnchor(row: BoardRow): number {
+  return (
+    row.platformAdp ??
+    row.adp ??
+    (Number.isFinite(row.consensusRank) ? row.consensusRank : row.boardRank)
+  );
+}
+
+/**
+ * Gone-before-my-next-turn odds per player id, computed from the pool of
+ * players actually still on the board — every pick already made shrinks the
+ * supply shielding the rest.
+ */
+export function goneOddsForBoard(rows: BoardRow[], ctx: DraftContext): Map<string, number> {
+  if (ctx.complete || ctx.goneWindow <= 0) return new Map();
+  const pool = rows
+    .filter((r) => !r.picked)
+    .map((r) => ({ id: r.player.id, anchor: rowAnchor(r) }));
+  return goneOdds(pool, ctx.goneWindow);
+}
+
+export interface TeamBalanceView {
+  balances: PositionBalance[];
+  playersByPos: Record<Position, Player[]>;
+  round: number;
+  rounds: number;
+}
+
+export function teamBalanceView(
+  rows: BoardRow[],
+  session: DraftSession | null,
+  fallback: LeagueSettings,
+  byId: Map<string, Player>,
+): TeamBalanceView {
+  const settings = session?.settings ?? fallback;
+  const ctx = draftContext(session, fallback);
+  const anchorById = new Map(rows.map((r) => [r.player.id, rowAnchor(r)]));
+
+  const players: RosteredPlayerValue[] = [];
+  const playersByPos: Record<Position, Player[]> = { QB: [], RB: [], WR: [], TE: [], DST: [], K: [] };
+  const myPickOveralls: number[] = [];
+  for (const pick of session?.picks ?? []) {
+    if (pick.teamSlot !== settings.mySlot || !pick.playerId) continue;
+    myPickOveralls.push(pick.overall);
+    const player = byId.get(pick.playerId);
+    if (!player) continue;
+    // Roster players unknown to every source carry late-round market value.
+    players.push({ position: player.position, anchor: anchorById.get(player.id) ?? 200 });
+    playersByPos[player.position].push(player);
+  }
+
+  const rounds = totalRounds(settings.roster);
+  const round = Math.min(rounds, roundOfPick(ctx.currentOverall, settings.teams));
+  return {
+    balances: teamBalance({ players, myPickOveralls, settings, currentOverall: ctx.currentOverall }),
+    playersByPos,
+    round,
+    rounds,
+  };
 }
 
 export interface TierSummary {
